@@ -41,18 +41,52 @@ class NaiveBayesClassifier(BinaryClassifier):
     """Naive Bayes Classifier
     """
     def __init__(self):
-        # Add your code here!
-        raise Exception("Must be implemented")
+        self.prior = None
+        self.likelihood = None
+        # raise Exception("Must be implemented")
         
 
     def fit(self, X, Y):
-        # Add your code here!
-        raise Exception("Must be implemented")
-        
+        # Obtain number of samples and features from X
+        n_samples, n_features = X.shape
+        self.classes = np.unique(Y)
+        n_classes = len(self.classes)
+
+        # Initialize prior and likelihood probabilities
+        self.prior = np.zeros(n_classes)
+        self.likelihood = np.zeros((n_classes, n_features))
+
+        # Compute prior and likelihood probabilities (with add-1 smoothing)
+        for i, c in enumerate(self.classes):
+            self.prior[i] = np.mean(Y == c)
+
+        for i, c in enumerate(self.classes):
+            X_c = X[Y == c]
+            self.likelihood[i] = ((X_c.sum(axis=0)) + 1 / (np.sum(X_c.sum(axis=0)) + n_features))        
     
     def predict(self, X):
-        # Add your code here!
-        raise Exception("Must be implemented")
+        # Initialize list of predicted class labels
+        y_pred = []
+
+        # Iterate over samples in X
+        for x in X:
+            posteriors = []
+
+            for i, c in enumerate(self.classes):
+                # For class c ...
+                # Compute the logs of the proir and likelihood probabilities
+                prior = np.log(self.prior[i])
+                likelihood = np.log(self.likelihood[i, :])
+
+                # Compute posterior probability and append to list
+                posterior = np.sum(likelihood * x) + prior
+                posteriors.append(posterior)
+            
+            # Append the label with the highest log posterior probability
+            y_pred.append(self.classes[np.argmax(posteriors)])
+        
+        # Return predicted class labels
+        return np.array(y_pred)
 
 # TODO: Implement this
 class LogisticRegressionClassifier(BinaryClassifier):
