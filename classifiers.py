@@ -93,18 +93,35 @@ class LogisticRegressionClassifier(BinaryClassifier):
     """Logistic Regression Classifier
     """
     def __init__(self):
-        # Add your code here!
-        raise Exception("Must be implemented")
-        
+        self.beta = None
+
+        return
 
     def fit(self, X, Y):
-        # Add your code here!
-        raise Exception("Must be implemented")
+        self.beta = np.zeros(X.shape[1])
+        learning_rate = 0.01
+        n_iter = 0
+        gradientSum = 100
+        while gradientSum > 0.1 or n_iter < 500:
+            posProb = 1 / (1 + np.exp(-np.dot(X, self.beta)))
+            # Calc diff b/t our preditcitions and actual, dot with X transpose to figure out which ones need to be increased by how much
+            # normalizie with size
+            # change beta by that times learning
+            gradient = np.dot(X.T, (posProb - Y)) / Y.size
+            print(np.sum(gradient))
+            gradientSum = abs(np.sum(gradient))
+            self.beta -= learning_rate * gradient
+            n_iter += 1
+        return
         
     
     def predict(self, X):
+        predictions = np.zeros(X.shape[0])
+        for i in range(0, len(X)):
+            posProb = 1 / (1 + np.exp(-np.dot(X[i], self.beta)))
+            predictions[i] = 1 if posProb >= 0.5 else 0
         # Add your code here!
-        raise Exception("Must be implemented")
+        return predictions
 
 
 # you can change the following line to whichever classifier you want to use for bonus
