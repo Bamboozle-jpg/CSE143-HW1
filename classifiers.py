@@ -36,7 +36,7 @@ class AlwaysPredictZero(BinaryClassifier):
     def predict(self, X):
         return [0]*len(X)
 
-# TODO: Implement this
+# IMPLEMENTED
 class NaiveBayesClassifier(BinaryClassifier):
     """Naive Bayes Classifier
     """
@@ -47,8 +47,8 @@ class NaiveBayesClassifier(BinaryClassifier):
         
 
     def fit(self, X, Y):
-        # Obtain number of samples and features from X
-        n_samples, n_features = X.shape
+        # Obtain number of sentences and features from X
+        n_sentences, n_features = X.shape
         self.classes = np.unique(Y)
         n_classes = len(self.classes)
 
@@ -68,7 +68,7 @@ class NaiveBayesClassifier(BinaryClassifier):
         # Initialize list of predicted class labels
         y_pred = []
 
-        # Iterate over samples in X
+        # Iterate over sentences in X
         for x in X:
             posteriors = []
 
@@ -92,10 +92,16 @@ class NaiveBayesClassifier(BinaryClassifier):
 class LogisticRegressionClassifier(BinaryClassifier):
     """Logistic Regression Classifier
     """
-    def __init__(self):
-        # Add your code here!
-        raise Exception("Must be implemented")
-        
+    def __init__(self, learning_rate = 0.01, num_iters = 1000):
+        self.learning_rate = learning_rate
+        self.num_iters = num_iters
+        self.lamb = None
+        self.theta = None
+        # raise Exception("Must be implemented")
+
+    def sigmoid(self, z):
+        # Sigmoid function to ensure values are between 0 and 1
+        return 1 / (1 + np.exp(-z))   
 
     def fit(self, X, Y):
         # Add your code here!
