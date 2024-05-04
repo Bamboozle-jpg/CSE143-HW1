@@ -22,7 +22,14 @@ def read_data(path):
     except:
         test_frame = train_frame
 
-    return train_frame, test_frame
+    # Dev Data
+    try:
+        dev_frame = pd.read_csv(path + 'dev.csv')
+    except:
+        dev_frame = train_frame
+
+
+    return train_frame, test_frame, dev_frame
 
 
 def main():
@@ -35,7 +42,7 @@ def main():
     args = parser.parse_args()
     print(args)
 
-    train_frame, test_frame = read_data(args.path)
+    train_frame, test_frame, dev_frame = read_data(args.path)
 
     # Convert text into features
     if args.feature == "unigram":
@@ -88,6 +95,18 @@ def main():
     accuracy(model.predict(X_test), Y_test)
 
     print("Time for training and test: %.2f seconds" % (time.time() - start_time))
+
+    # Dev Set Testing
+
+    # form dev set for evaluation
+    tokenized_text = []
+    for i in range(0, len(dev_frame['text'])):
+        tokenized_text.append(tokenize(dev_frame['text'][i]))
+    X_dev = feat_extractor.transform_list(tokenized_text)
+    Y_dev = test_frame['label']
+
+    print("===== Dev Accuracy =====")
+    accuracy(model.predict(X_dev), Y_dev)
 
 
 
