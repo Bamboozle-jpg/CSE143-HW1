@@ -97,33 +97,136 @@ class BigramFeature(FeatureExtractor):
     """Bigram feature extractor analogous to the unigram one.
     """
     def __init__(self):
-        # Add your code here!
-        raise Exception("Must be implemented")
-    def fit(self, text_set):
-        # Add your code here!
-        raise Exception("Must be implemented")
+        self.bigram = {}
+
+    def fit(self, text_set: list):
+        index = 0
+        # Loop through docs
+        for doc in range(0, len(text_set)):
+            # Loop through words
+            for word in range(0, len(text_set[doc])):
+                # If word isn't first word
+                if word > 0:
+                    # If bigram isn't already set
+                    if (text_set[doc][word-1].lower(), text_set[doc][word].lower()) not in self.bigram:
+                        # Se tthat index of the bigram list to be that word bigram, and increment index
+                        self.bigram[(text_set[doc][word-1].lower(), text_set[doc][word].lower())] = index
+                        index += 1
+                    else:
+                        continue
+                # If word is first word
+                else:
+                    # Check for bigram of that word and start, and add to list if needed
+                    if ("START", text_set[doc][word].lower()) not in self.bigram:
+                        self.bigram[("START", text_set[doc][word].lower())] = index
+                        index += 1
+                    else:
+                        continue
+    
     def transform(self, text):
-        # Add your code here!
-        raise Exception("Must be implemented")
+        # Initialize the document to have no words (aka features of all 0s)
+        feature = np.zeros(len(self.bigram))
+        # Loop through the words in the document
+        for i in range(0, len(text)):
+            # If word isn't first word
+            if i != 0:
+                # If bigram exists, increment the count of that bigram
+                if (text[i-1].lower(), text[i].lower()) in self.bigram:
+                    feature[self.bigram[(text[i-1].lower(), text[i].lower())]] += 1
+            # If word is first word
+            else:
+                # If bigram of word and START exists, increment the count of that bigram
+                if ("START", text[i].lower()) in self.bigram:
+                    feature[self.bigram[("START", text[i].lower())]] += 1
+        
+        return feature
+    
     def transform_list(self, text_set):
-        # Add your code here!
-        raise Exception("Must be implemented")
+        # Self explanatory, also copy and paste from unigram
+        features = []
+        for i in range(0, len(text_set)):
+            features.append(self.transform(text_set[i]))
+        
+        return np.array(features)
 
 class CustomFeature(FeatureExtractor):
+    #####################################################################
+    ##                                                                 ##
+    ##           HEY SABRINA AND WILLIAMS!!                            ##
+    ##           https://en.wikipedia.org/wiki/Tf%E2%80%93idf          ##
+    ##           HERE IS THE ALGORITHM I USED                          ##
+    ##                                                                 ##
+    #####################################################################
     """customized feature extractor, such as TF-IDF
     """
     def __init__(self):
-        # Add your code here!
-        raise Exception("Must be implemented")
+        # Doc frequency of each word (how many documents that word shows up in)
+        self.docFreq = {}
+        # How many documents there are total
+        self.docNum = 0
+        # Keeping track of the index of each word for features
+        self.wordCount = {}
+
     def fit(self, text_set):
-        # Add your code here!
-        raise Exception("Must be implemented")
+        # Set up docFreq
+        for doc in text_set:
+            self.docNum += 1
+            for word in doc:
+                if word not in self.docFreq:
+                    self.docFreq[word] = 1
+                else:
+                    self.docFreq[word] += 1
+
+        # Set up word count (copy paste of unigram set up)
+        index = 0
+        for i in range(0, len(text_set)):
+            for j in range(0, len(text_set[i])):
+                if text_set[i][j].lower() not in self.wordCount:
+                    self.wordCount[text_set[i][j].lower()] = index
+                    index += 1
+                else:
+                    continue
+
     def transform(self, text):
-        # Add your code here!
-        raise Exception("Must be implemented")
+        feature = np.zeros(len(self.wordCount))
+        frequency = {}
+        total = len(text)
+        wordsInText = []
+        # Get the frequency of each word in the text without duplicates/repeat counts
+        for selectedWord in text:
+            if selectedWord not in wordsInText:
+                wordsInText.append(selectedWord)
+                frequency[selectedWord] = 0
+                for word in text:
+                    if selectedWord == word:
+                        frequency[selectedWord] += 1
+
+        # Divide that by the total for TF = term frequency
+        tf = {}
+        for word in frequency:
+            tf[word] = frequency[word] / total
+
+        # Calculate the idf = inverse document frequency = docTotal / how many documents contain that word
+        # Then take log of that
+        idf = {}
+        for word in self.docFreq:
+            idf[word] = np.log(self.docNum / self.docFreq[word])
+
+        # Multiply the two together to get the final value
+        for word in tf:
+            # Check to ignore words we've never seen before
+            if word in self.wordCount:
+                feature[self.wordCount[word]] = tf[word] * idf[word]
+
+        return feature
+    
     def transform_list(self, text_set):
-        # Add your code here!
-        raise Exception("Must be implemented")
+        # Self explanatory, also copy and paste from unigram
+        features = []
+        for i in range(0, len(text_set)):
+            features.append(self.transform(text_set[i]))
+        
+        return np.array(features)
 
 
         
