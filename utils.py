@@ -166,6 +166,8 @@ class CustomFeature(FeatureExtractor):
         self.docNum = 0
         # Keeping track of the index of each word for features
         self.wordCount = {}
+        # invers dcoument frequency of each word
+        self.idf = {}
 
     def fit(self, text_set):
         # Set up docFreq
@@ -187,6 +189,17 @@ class CustomFeature(FeatureExtractor):
                 else:
                     continue
 
+        # Calculate the idf = inverse document frequency = docTotal / how many documents contain that word
+        # Then take log of that
+        for word in self.docFreq:
+            self.idf[word] = np.log(self.docNum / self.docFreq[word])
+            if (self.idf[word] < 0):
+                # Delete words with negative log because it breaks the algorithm
+                # Also this gets rid of super common words like and, the, a, etc.
+                del self.idf[word]
+
+        print
+
     def transform(self, text):
         feature = np.zeros(len(self.wordCount))
         frequency = {}
@@ -206,18 +219,13 @@ class CustomFeature(FeatureExtractor):
         for word in frequency:
             tf[word] = frequency[word] / total
 
-        # Calculate the idf = inverse document frequency = docTotal / how many documents contain that word
-        # Then take log of that
-        idf = {}
-        for word in self.docFreq:
-            idf[word] = np.log(self.docNum / self.docFreq[word])
-
         # Multiply the two together to get the final value
         for word in tf:
-            # Check to ignore words we've never seen before
-            if word in self.wordCount:
-                feature[self.wordCount[word]] = tf[word] * idf[word]
 
+            # Check to ignore words we've never seen before
+            if word in self.wordCount and word in self.idf:
+                    feature[self.wordCount[word]] = tf[word] * self.idf[word]
+        
         return feature
     
     def transform_list(self, text_set):
